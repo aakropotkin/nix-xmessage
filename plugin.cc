@@ -40,8 +40,12 @@ runXMessage( std::string_view msg )
 {
   std::list<std::string> args;
   args.emplace_back( msg );
+
   RunOptions opts = xmessageOptions( args );
-  opts.input = {};
+
+  /* Don't leak `stderr', catch it in the `stdout' FD and throw it away. */
+  opts.mergeStderrToStdout = true;
+  opts.input               = {};
 
   auto res = runProgram( std::move( opts ) );
 

@@ -41,10 +41,11 @@
     #! ${bash}/bin/bash
     # A wrapper around Nix that includes the \`libscrape' plugin.
     # First we add runtime executables to \`PATH', then pass off to Nix.
-    export PATH="$PATH:${xmessage}/bin";
     for p in \$( <"$out/nix-support/propagated-build-inputs"; ); do
       if [[ -d "\$p/bin" ]]; then PATH="\$PATH:\$p/bin"; fi
     done
+    export PATH;
+    export XMESSAGE="$PATH:${xmessage}/bin/xmessage";
     exec "${nix}/bin/nix" --plugin-files "$out/libexec/lib$pname$libExt" "\$@";
     EOF
     chmod +x "$out/bin/$pname";
