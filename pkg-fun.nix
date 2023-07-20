@@ -15,16 +15,16 @@
   #libExt                = stdenv.hostPlatform.extensions.sharedLibrary;
   libExt = ".so";
   buildPhase            = ''
-    $CXX                                                                       \
-      -shared                                                                  \
-      -fPIC                                                                    \
-      -I${nix.dev}/include                                                     \
-      -I${boost.dev}/include                                                   \
-      -I${nlohmann_json}/include                                               \
-      -include ${nix.dev}/include/nix/config.h                                 \
-      $(pkg-config --libs --cflags nix-main nix-store nix-expr)                \
-      -o "lib$pname$libExt"                                                    \
-      ./*.cc                                                                   \
+    $CXX                                                         \
+      -shared                                                    \
+      -fPIC                                                      \
+      -I${nix.dev}/include                                       \
+      -I${boost.dev}/include                                     \
+      -I${nlohmann_json}/include                                 \
+      -include ${nix.dev}/include/nix/config.h                   \
+      $(pkg-config --libs --cflags nix-main nix-store nix-expr)  \
+      -o "lib$pname$libExt"                                      \
+      ./*.cc                                                     \
     ;
   '';
   installPhase = ''
