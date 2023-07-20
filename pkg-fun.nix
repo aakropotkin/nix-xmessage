@@ -37,8 +37,7 @@
     for p in \$( <"$out/nix-support/propagated-build-inputs"; ); do
       if [[ -d "\$p/bin" ]]; then PATH="\$PATH:\$p/bin"; fi
     done
-    exec "${nix}/bin/nix" --plugin-files "$out/libexec/lib$pname$libExt"  \
-                          "$pname" "\$@";
+    exec "${nix}/bin/nix" --plugin-files "$out/libexec/lib$pname$libExt" "\$@";
     EOF
     chmod +x "$out/bin/$pname";
   '';
