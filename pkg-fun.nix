@@ -12,7 +12,8 @@
   buildInputs           = [nix nix.dev boost nlohmann_json];
   propagatedBuildInputs = [bash nix];
   dontConfigure         = true;
-  libExt                = stdenv.hostPlatform.extensions.sharedLibrary;
+  #libExt                = stdenv.hostPlatform.extensions.sharedLibrary;
+  libExt = ".so";
   buildPhase            = ''
     $CXX                                                                       \
       -shared                                                                  \

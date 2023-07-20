@@ -1,81 +1,85 @@
+/* ========================================================================== *
+ *
+ *
+ *
+ * -------------------------------------------------------------------------- */
 
 #include <nix/command.hh>
 #include <nix/eval.hh>
 #include <nix/eval-cache.hh>
+#include <nix/eval-inline.hh>
+#include <nix/primops.hh>
 #include <nix/names.hh>
-#include <nlohmann/json.hpp>
+#include <nix/util.hh>
+
+
+/* -------------------------------------------------------------------------- */
 
 using namespace nix;
 using namespace nix::flake;
-using json = nlohmann::json;
 
-class FlakeCommand : virtual Args, public MixFlakeOptions
+
+/* -------------------------------------------------------------------------- */
+
+namespace nix {
+
+  static RunOptions
+xmessageOptions( const Strings & args )
 {
-  std::string flakeUrl = ".";
+  auto env = getEnv();
+  return {
+    .program     = "xmessage",
+    .searchPath  = true,
+    .args        = args,
+    .environment = env
+  };
+}
 
-  public:
+  std::string
+runXMessage( std::string_view msg )
+{
+  std::list<std::string> args;
+  args.emplace_back( msg );
+  RunOptions opts = xmessageOptions( args );
+  opts.input = {};
 
-    FlakeCommand()
-      {
-        expectArgs( {
-          .label = "flake-url",
-          .optional = true,
-          .handler = { & flakeUrl },
-          .completer = { [&]( size_t, std::string_view prefix ) {
-            completeFlakeRef( getStore(), prefix );
-          } }
-        } );
-      }
+  auto res = runProgram( std::move( opts ) );
 
-    FlakeRef getFlakeRef()
-      {
-        return parseFlakeRef( flakeUrl, absPath( "." ) ); //FIXME
-      }
+  if ( ! statusOk( res.first ) ) { return ""; }
 
-    LockedFlake lockFlake()
-      {
-        return flake::lockFlake( * getEvalState(), getFlakeRef(), lockFlags );
-      }
+  return res.second;
+}
 
-    std::vector<std::string> getFlakesForCompletion() override
-      {
-        return { flakeUrl };
-      }
-};
 
-struct CmdName : FlakeCommand {
+/* -------------------------------------------------------------------------- */
 
-  bool someOption = false;
+  static void
+prim_xmessage(
+  EvalState & state, const PosIdx pos, Value ** args, Value & v
+)
+{
+  const std::string message( state.forceStringNoCtx( * args[0], pos, "" ) );
+  runXMessage( message );
+  v = * args[1];
+}
 
-  CmdFlakeScrape()
-    {
-      addFlag( {
-        .longName    = "some-option",
-        .description = "TODO",
-        .handler     = { & someOption, true }
-      } );
-    }
+static RegisterPrimOp primop_xmessage( {
+  .name = "xmessage",
+  .args = { "message", "expr" },
+  .doc  = R"(
+    Print a string using `xmessage', and return second argument "as is".
+  )",
+  .fun = prim_xmessage,
+} );
 
-  std::string description() override
-    {
-      return "TODO";
-    }
 
-  std::string doc() override
-    {
-      return "TODO";
-    }
+/* -------------------------------------------------------------------------- */
 
-  void run( nix::ref<nix::Store> store ) override
-    {
-      evalSettings.enableImportFromDerivation.setDefault( false );
+}  /* End namespace `nix' */
 
-      auto state       = getEvalState();
-      auto flake       = std::make_shared<LockedFlake>( lockFlake() );
-      auto localSystem = std::string( settings.thisSystem.get() );
 
-      logger->cout( "%s", "TODO" );
-    }
-};
-
-static auto rScrapeCmd = registerCommand<CmdFlakeScrape>( "NAME" );
+/* -------------------------------------------------------------------------- *
+ *
+ *
+ *
+ * ========================================================================== */
