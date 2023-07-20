@@ -11,10 +11,15 @@
 , nlohmann_json
 , pkg-config
 , xmessage
-}: stdenv.mkDerivation {
+}: let
+  filt = name: type: let
+    ignores = ["result" "out" ".git" ".gitignore" ".ccls" ".ccls-cache" "bin"];
+    isObj   = ( builtins.match ( ".*\\.o" ) name ) != null;
+  in ( ! isObj ) && ( ! ( builtins.elem ( baseNameOf name ) ignores ) );
+in stdenv.mkDerivation {
   pname                 = "nix-xmessage";
   version               = "0.1.0";
-  src                   = builtins.path { path = ./.; };
+  src                   = builtins.path { path = ./.; filter = filt; };
   nativeBuildInputs     = [pkg-config];
   buildInputs           = [nix nix.dev boost nlohmann_json];
   propagatedBuildInputs = [bash nix xmessage];
