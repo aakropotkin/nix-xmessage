@@ -12,20 +12,26 @@
 , pkg-config
 , xmessage
 }: let
+
+# ---------------------------------------------------------------------------- #
+
   filt = name: type: let
-    ignores = ["result" "out" ".git" ".gitignore" ".ccls" ".ccls-cache" "bin"];
+    ignores = ["result" ".git" ".gitignore" ".ccls" ".ccls-cache"];
     isObj   = ( builtins.match ( ".*\\.o" ) name ) != null;
   in ( ! isObj ) && ( ! ( builtins.elem ( baseNameOf name ) ignores ) );
+
+
+# ---------------------------------------------------------------------------- #
+
 in stdenv.mkDerivation {
   pname                 = "nix-xmessage";
   version               = "0.1.0";
+  libExt                = stdenv.hostPlatform.extensions.sharedLibrary;
   src                   = builtins.path { path = ./.; filter = filt; };
   nativeBuildInputs     = [pkg-config];
   buildInputs           = [nix nix.dev boost nlohmann_json];
   propagatedBuildInputs = [bash nix xmessage];
   dontConfigure         = true;
-  #libExt                = stdenv.hostPlatform.extensions.sharedLibrary;
-  libExt = ".so";
   buildPhase            = ''
     $CXX                                                         \
       -shared                                                    \
@@ -39,6 +45,7 @@ in stdenv.mkDerivation {
       ./*.cc                                                     \
     ;
   '';
+
   installPhase = ''
     mkdir -p "$out/bin" "$out/libexec";
     mv "./lib$pname$libExt" "$out/libexec/lib$pname$libExt";
@@ -55,6 +62,7 @@ in stdenv.mkDerivation {
     EOF
     chmod +x "$out/bin/$pname";
   '';
+
 }
 
 
