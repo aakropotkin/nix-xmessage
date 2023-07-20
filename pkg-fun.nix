@@ -4,13 +4,20 @@
 #
 # ---------------------------------------------------------------------------- #
 
-{ stdenv, bash, nix, boost, nlohmann_json, pkg-config }: stdenv.mkDerivation {
+{ stdenv
+, bash
+, nix
+, boost
+, nlohmann_json
+, pkg-config
+, xmessage
+}: stdenv.mkDerivation {
   pname                 = "nix-xmessage";
   version               = "0.1.0";
   src                   = builtins.path { path = ./.; };
   nativeBuildInputs     = [pkg-config];
   buildInputs           = [nix nix.dev boost nlohmann_json];
-  propagatedBuildInputs = [bash nix];
+  propagatedBuildInputs = [bash nix xmessage];
   dontConfigure         = true;
   #libExt                = stdenv.hostPlatform.extensions.sharedLibrary;
   libExt = ".so";
@@ -34,6 +41,7 @@
     #! ${bash}/bin/bash
     # A wrapper around Nix that includes the \`libscrape' plugin.
     # First we add runtime executables to \`PATH', then pass off to Nix.
+    export PATH="$PATH:${xmessage}/bin";
     for p in \$( <"$out/nix-support/propagated-build-inputs"; ); do
       if [[ -d "\$p/bin" ]]; then PATH="\$PATH:\$p/bin"; fi
     done
